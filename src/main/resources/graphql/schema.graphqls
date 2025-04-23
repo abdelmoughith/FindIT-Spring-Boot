@@ -1,0 +1,32 @@
+type Query {
+    getAllAnnoncesByCity(city: String, page: Int): [Annonce]
+    getAllAnnonces(city: String, pattern :String, page: Int): [Annonce]
+    searchAnnonces(pattern: String, page: Int): [Annonce]
+    getAnnonceById(id: ID!): Annonce
+}
+
+type Annonce {
+    id: ID!
+    title: String!
+    description: String!
+    datePublished: String!
+    status: String!
+    imageUrls: [String]
+    location: String!
+    city: City!
+    user: User!
+}
+
+type User {
+    id: ID!
+    username: String!
+    email: String!
+    birthday: String!
+    city: City!
+}
+
+type City {
+    id: ID!
+    ville: String!
+    region: Int!
+}
