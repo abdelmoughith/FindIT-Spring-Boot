@@ -3,6 +3,8 @@ type Query {
     getAllAnnonces(city: String, pattern :String, page: Int): [Annonce]
     searchAnnonces(pattern: String, page: Int): [Annonce]
     getAnnonceById(id: ID!): Annonce
+    # AI
+    searchAnnoncesByImage(image: String!): [Annonce]
 }
 
 type Annonce {
@@ -30,3 +32,5 @@ type City {
     ville: String!
     region: Int!
 }
+
+

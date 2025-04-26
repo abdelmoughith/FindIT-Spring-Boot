@@ -25,7 +25,7 @@ public interface AnnonceRepository extends JpaRepository<Annonce, Long> {
     );
 
     // find by images url for search by image
-    @Query("SELECT a FROM Annonce a JOIN a.imageUrls i WHERE i IN :imageUrls")
-    List<Annonce> findByImageUrls(List<String> imageUrls);
+    @Query("SELECT DISTINCT a FROM Annonce a JOIN a.imageUrls i WHERE i IN :imageUrls")
+    List<Annonce> findByImageUrls(@Param("imageUrls") List<String> imageUrls);
 
 }

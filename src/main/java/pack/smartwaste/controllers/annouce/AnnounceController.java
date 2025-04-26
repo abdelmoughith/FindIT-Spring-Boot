@@ -104,6 +104,7 @@ public class AnnounceController {
         }
     }
 
+    /*
     @Value("${upload.folder}")
     private String uploadFolder;
     // get image cover
@@ -121,13 +122,12 @@ public class AnnounceController {
         //System.out.println("File does not exist: " + file.getAbsolutePath());
         return ResponseEntity.notFound().build();
     }
+
+     */
     @GetMapping("/all")
     public List<Annonce> getAllAnnonces() {
         return annonceService.getAll();
     }
 
-    @PostMapping("/search-by-images")
-    public List<Annonce> searchAnnoncesByImageUrls(@RequestBody List<String> imageUrls) {
-        return annonceService.findAnnoncesByImageUrls(imageUrls);
-    }
+
 }

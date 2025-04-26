@@ -1,32 +1,28 @@
 package pack.smartwaste.services;
 
 import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import pack.smartwaste.RequestsEntities.ImageRequest;
+import pack.smartwaste.RequestsEntities.ImageResponse;
 import pack.smartwaste.models.post.Annonce;
 import pack.smartwaste.models.user.City;
 import pack.smartwaste.rep.AnnonceRepository;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
+@RequiredArgsConstructor
 @Service
 public class AnnonceService {
     private final AnnonceRepository annonceRepository;
     private final ImageStorageServiceCloud imageStorageServiceCloud;
     private final CityService cityService;
-
-    public AnnonceService(AnnonceRepository annonceRepository, ImageStorageServiceCloud imageStorageServiceCloud, CityService cityService) {
-        this.annonceRepository = annonceRepository;
-        this.imageStorageServiceCloud = imageStorageServiceCloud;
-        this.cityService = cityService;
-    }
+    private final FastApiService fastApiService;
 
     // Create
     @Transactional
@@ -156,5 +152,27 @@ public class AnnonceService {
     public List<Annonce> findAnnoncesByImageUrls(List<String> imageUrls) {
         return annonceRepository.findByImageUrls(imageUrls);
     }
+    public List<Annonce> findAnnoncesByImageUrlsOrdered(List<String> orderedUrls) {
+        List<Annonce> rawAnnonces = annonceRepository.findByImageUrls(orderedUrls);
+
+        // Map each image URL to its position
+        Map<String, Integer> urlIndexMap = new HashMap<>();
+        for (int i = 0; i < orderedUrls.size(); i++) {
+            urlIndexMap.put(orderedUrls.get(i), i);
+        }
+
+        // Sort annonces by the first matching image URL in the provided list
+        rawAnnonces.sort(Comparator.comparingInt(a -> {
+            OptionalInt minIndex = a.getImageUrls().stream()
+                    .filter(urlIndexMap::containsKey)
+                    .mapToInt(urlIndexMap::get)
+                    .min();
+            return minIndex.orElse(Integer.MAX_VALUE);
+        }));
+
+        return rawAnnonces;
+    }
+
+
 
 }

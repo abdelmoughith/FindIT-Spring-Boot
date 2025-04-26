@@ -19,14 +19,13 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 @Service
 public class ImageStorageServiceCloud {
 
-    // Not used for Firebase storage, but you might still need it if you combine with local storage.
-    @Value("${upload.folder}")
-    private String uploadFolder;
 
     @Value("${firebase.token}")
     private String firebaseTokenPath;
@@ -137,6 +136,61 @@ public class ImageStorageServiceCloud {
             return null;
         }
     }
+
+    public String uploadRawImageToTMPfolder(MultipartFile file) throws IOException {
+        // Validate file type
+        String contentType = file.getContentType();
+        if (contentType == null ||
+                (!contentType.equals("image/jpeg") && !contentType.equals("image/png"))) {
+            throw new IllegalArgumentException("Only .jpg and .png files are allowed.");
+        }
+
+        // Determine file extension
+        String fileExtension = getFileExtension(file.getOriginalFilename());
+        String baseFileName = UUID.randomUUID().toString();
+        String rawFileName = baseFileName + "." + fileExtension;
+
+        // Read original image
+        BufferedImage originalImage = ImageIO.read(file.getInputStream());
+        if (originalImage == null) {
+            throw new IllegalArgumentException("Invalid image file.");
+        }
+
+        // Check if image exceeds size limits (height or width greater than 1080px)
+        if (originalImage.getWidth() > 3000 || originalImage.getHeight() > 3000) {
+            throw new IllegalArgumentException("Image height or width exceeds the 1080px limit.");
+        }
+
+        // Convert image to byte array
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ImageIO.write(originalImage, fileExtension, baos);
+        byte[] imageData = baos.toByteArray();
+
+        // Upload image to Firebase
+        return uploadToFirebase(imageData, "tmp/" + rawFileName, fileExtension);
+    }
+    public void deleteImageFromFirebase(String firebaseUrl) throws IOException {
+        // Extract the path from the Firebase URL
+        String decodedUrl = URLDecoder.decode(firebaseUrl, StandardCharsets.UTF_8);
+
+        // Example Firebase URL format:
+        // https://firebasestorage.googleapis.com/v0/b/YOUR_PROJECT.appspot.com/o/tmp%2Ffilename.png?alt=media
+        // You need to extract "tmp/filename.png"
+        String prefix = "/o/";
+        String suffix = "?alt=media";
+        int start = decodedUrl.indexOf(prefix) + prefix.length();
+        int end = decodedUrl.indexOf(suffix);
+
+        if (start == -1 || end == -1) {
+            throw new IllegalArgumentException("Invalid Firebase image URL.");
+        }
+
+        String filePath = decodedUrl.substring(start, end).replace("%2F", "/");
+
+        // Now delete the file using Firebase Storage
+        StorageClient.getInstance().bucket().get(filePath).delete();
+    }
+
 
     private String getFileExtension(String fileName) {
         int lastIndex = fileName.lastIndexOf('.');
