@@ -80,7 +80,8 @@ public class AnnonceGraphQLResolver {
             @Argument String token,
             @Argument String city,
             @Argument String pattern,
-            @Argument Integer page
+            @Argument Integer page,
+            @Argument Boolean onlySaved
     ) {
         int pageNumber = (page != null) ? page : 0;
         try {
@@ -90,21 +91,42 @@ public class AnnonceGraphQLResolver {
             Set<Long> savedAnnonceIds = annonceService.getSavedAnnonces(userId).stream()
                     .map(Annonce::getId)
                     .collect(Collectors.toSet());
+            List<AnnonceResponse> responseList;
+            if (onlySaved){
+                responseList = annonces.stream()
+                        .filter(annonce -> savedAnnonceIds.contains(annonce.getId()))
+                        .map(annonce -> {
+                            AnnonceResponse response = new AnnonceResponse();
+                            response.setId(annonce.getId());
+                            response.setTitle(annonce.getTitle());
+                            response.setDescription(annonce.getDescription());
+                            response.setDatePublished(annonce.getDatePublished());
+                            response.setStatus(annonce.getStatus().name());
+                            response.setImageUrls(annonce.getImageUrls());
+                            response.setLocation(annonce.getLocation());
+                            response.setCity(annonce.getCity());
+                            response.setUser(annonce.getUser());
+                            response.setSaved(true);
+                            return response;
+                        })
+                        .toList();
+            } else {
+                responseList = annonces.stream().map(annonce -> {
+                    AnnonceResponse response = new AnnonceResponse();
+                    response.setId(annonce.getId());
+                    response.setTitle(annonce.getTitle());
+                    response.setDescription(annonce.getDescription());
+                    response.setDatePublished(annonce.getDatePublished());
+                    response.setStatus(annonce.getStatus().name());
+                    response.setImageUrls(annonce.getImageUrls());
+                    response.setLocation(annonce.getLocation());
+                    response.setCity(annonce.getCity());
+                    response.setUser(annonce.getUser());
+                    response.setSaved(savedAnnonceIds.contains(annonce.getId()));
+                    return response;
+                }).toList();
+            }
 
-            List<AnnonceResponse> responseList = annonces.stream().map(annonce -> {
-                AnnonceResponse response = new AnnonceResponse();
-                response.setId(annonce.getId());
-                response.setTitle(annonce.getTitle());
-                response.setDescription(annonce.getDescription());
-                response.setDatePublished(annonce.getDatePublished());
-                response.setStatus(annonce.getStatus().name());
-                response.setImageUrls(annonce.getImageUrls());
-                response.setLocation(annonce.getLocation());
-                response.setCity(annonce.getCity());
-                response.setUser(annonce.getUser());
-                response.setSaved(savedAnnonceIds.contains(annonce.getId()));
-                return response;
-            }).toList();
             return responseList;
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -113,7 +135,8 @@ public class AnnonceGraphQLResolver {
     }
 
     @QueryMapping
-    public List<Annonce> searchAnnoncesByImage(@Argument String image) {
+    public List<AnnonceResponse> searchAnnoncesByImage(@Argument String image,
+                                                       @Argument String token) {
         try {
             logger.warn("Fetching similar images for URL: {}", image);
 
@@ -127,7 +150,28 @@ public class AnnonceGraphQLResolver {
             logger.warn("Received image URLs: {}", imageResponse.getUrls());
 
             // Find annonces based on those image URLs in order
-            return annonceService.findAnnoncesByImageUrlsOrdered(imageResponse.getUrls());
+            List<Annonce> annonceList = annonceService.findAnnoncesByImageUrlsOrdered(imageResponse.getUrls());
+            String username = jwtUtil.extractUsername(token.replace("Bearer ", ""));
+            Long userId = userService.loadUserByUsername(username).getId();
+            Set<Long> savedAnnonceIds = annonceService.getSavedAnnonces(userId).stream()
+                    .map(Annonce::getId)
+                    .collect(Collectors.toSet());
+            List<AnnonceResponse> responseList = annonceList.stream().map(annonce -> {
+                        AnnonceResponse response = new AnnonceResponse();
+                        response.setId(annonce.getId());
+                        response.setTitle(annonce.getTitle());
+                        response.setDescription(annonce.getDescription());
+                        response.setDatePublished(annonce.getDatePublished());
+                        response.setStatus(annonce.getStatus().name());
+                        response.setImageUrls(annonce.getImageUrls());
+                        response.setLocation(annonce.getLocation());
+                        response.setCity(annonce.getCity());
+                        response.setUser(annonce.getUser());
+                        response.setSaved(savedAnnonceIds.contains(annonce.getId()));
+                        return response;
+                    })
+                    .toList();
+            return responseList;
 
         } catch (Exception e) {
             logger.error("Error in searchAnnoncesByImage: {}", e.getMessage(), e);
@@ -136,12 +180,7 @@ public class AnnonceGraphQLResolver {
     }
 
     private final JwtUtils jwtUtil;
-    @QueryMapping
-    public Set<Annonce> getSavedAnnonces(@Argument String token) {
-        String username = jwtUtil.extractUsername(token.replace("Bearer ", ""));
-        Long userId = userService.loadUserByUsername(username).getId();
-        return annonceService.getSavedAnnonces(userId);
-    }
+
 
 
 }
