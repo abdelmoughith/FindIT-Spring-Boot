@@ -1,5 +1,6 @@
 package pack.smartwaste.models.post;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
 import pack.smartwaste.models.user.City;
@@ -8,7 +9,9 @@ import pack.smartwaste.models.user.User;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Data
@@ -42,6 +45,7 @@ public class Annonce {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnoreProperties({"savedAnnonces"})
     private User user;
 
     public Annonce() {

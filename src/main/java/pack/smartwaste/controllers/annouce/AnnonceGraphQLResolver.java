@@ -9,25 +9,29 @@ import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import pack.smartwaste.RequestsEntities.ImageRequest;
 import pack.smartwaste.RequestsEntities.ImageResponse;
+import pack.smartwaste.config.JwtUtils;
 import pack.smartwaste.controllers.FastAPIController;
 import pack.smartwaste.models.post.Annonce;
+import pack.smartwaste.models.post.AnnonceResponse;
 import pack.smartwaste.rep.AnnonceRepository;
 import pack.smartwaste.services.AnnonceService;
+import pack.smartwaste.services.CustomUserService;
 import pack.smartwaste.services.FastApiService;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Controller
 public class AnnonceGraphQLResolver {
     private final AnnonceService annonceService;
     private final FastApiService fastApiService;
+    private final CustomUserService userService;
     private static final int PAGE_SIZE = 25;
     private static final Logger logger = LoggerFactory.getLogger(AnnonceGraphQLResolver.class);
 
@@ -72,14 +76,36 @@ public class AnnonceGraphQLResolver {
     }
 
     @QueryMapping
-    public List<Annonce> getAllAnnonces(
+    public List<AnnonceResponse> getAllAnnonces(
+            @Argument String token,
             @Argument String city,
             @Argument String pattern,
             @Argument Integer page
     ) {
         int pageNumber = (page != null) ? page : 0;
         try {
-            return annonceService.getAllAnnoncesByCityAndPattern(city, pattern, pageNumber, PAGE_SIZE);
+            List<Annonce> annonces = annonceService.getAllAnnoncesByCityAndPattern(city, pattern, pageNumber, PAGE_SIZE);
+            String username = jwtUtil.extractUsername(token.replace("Bearer ", ""));
+            Long userId = userService.loadUserByUsername(username).getId();
+            Set<Long> savedAnnonceIds = annonceService.getSavedAnnonces(userId).stream()
+                    .map(Annonce::getId)
+                    .collect(Collectors.toSet());
+
+            List<AnnonceResponse> responseList = annonces.stream().map(annonce -> {
+                AnnonceResponse response = new AnnonceResponse();
+                response.setId(annonce.getId());
+                response.setTitle(annonce.getTitle());
+                response.setDescription(annonce.getDescription());
+                response.setDatePublished(annonce.getDatePublished());
+                response.setStatus(annonce.getStatus().name());
+                response.setImageUrls(annonce.getImageUrls());
+                response.setLocation(annonce.getLocation());
+                response.setCity(annonce.getCity());
+                response.setUser(annonce.getUser());
+                response.setSaved(savedAnnonceIds.contains(annonce.getId()));
+                return response;
+            }).toList();
+            return responseList;
         } catch (Exception e) {
             System.out.println(e.getMessage());
             return null;
@@ -107,6 +133,14 @@ public class AnnonceGraphQLResolver {
             logger.error("Error in searchAnnoncesByImage: {}", e.getMessage(), e);
             return Collections.emptyList();
         }
+    }
+
+    private final JwtUtils jwtUtil;
+    @QueryMapping
+    public Set<Annonce> getSavedAnnonces(@Argument String token) {
+        String username = jwtUtil.extractUsername(token.replace("Bearer ", ""));
+        Long userId = userService.loadUserByUsername(username).getId();
+        return annonceService.getSavedAnnonces(userId);
     }
 
 

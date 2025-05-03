@@ -1,5 +1,6 @@
 package pack.smartwaste.models.user;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;
@@ -7,9 +8,12 @@ import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import pack.smartwaste.models.post.Annonce;
 
 import java.time.LocalDate;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -45,8 +49,21 @@ public class User implements UserDetails {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
-
     private Set<Role> roles;
+
+    @JsonIgnore
+    @ManyToMany
+    @JoinTable(
+            name = "user_saved_annonces",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "annonce_id")
+    )
+    private Set<Annonce> savedAnnonces = new HashSet<>();
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 
     public User(String username, String password) {
         this.username = username;

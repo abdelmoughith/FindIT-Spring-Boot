@@ -23,7 +23,6 @@ public interface AnnonceRepository extends JpaRepository<Annonce, Long> {
     Page<Annonce> findByCityAndTitleContainingIgnoreCaseOrCityAndDescriptionContainingIgnoreCaseOrCityAndLocationContainingIgnoreCaseOrderByDatePublishedDesc(
             City city1, String title, City city2, String description, City city3, String location, Pageable pageable
     );
-
     // find by images url for search by image
     @Query("SELECT DISTINCT a FROM Annonce a JOIN a.imageUrls i WHERE i IN :imageUrls")
     List<Annonce> findByImageUrls(@Param("imageUrls") List<String> imageUrls);

@@ -1,10 +1,24 @@
 type Query {
     getAllAnnoncesByCity(city: String, page: Int): [Annonce]
-    getAllAnnonces(city: String, pattern :String, page: Int): [Annonce]
+    getAllAnnonces(token: String, city: String, pattern :String, page: Int): [AnnonceResponse]
     searchAnnonces(pattern: String, page: Int): [Annonce]
     getAnnonceById(id: ID!): Annonce
     # AI
     searchAnnoncesByImage(image: String!): [Annonce]
+    # saved
+    getSavedAnnonces(token: String!): [Annonce]
+}
+type AnnonceResponse {
+    id: ID!
+    title: String!
+    description: String!
+    datePublished: String!
+    status: String!
+    imageUrls: [String]
+    location: String!
+    city: City!
+    user: User!
+    isSaved: Boolean!
 }
 
 type Annonce {

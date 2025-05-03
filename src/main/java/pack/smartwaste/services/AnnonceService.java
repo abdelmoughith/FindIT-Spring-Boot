@@ -11,7 +11,9 @@ import pack.smartwaste.RequestsEntities.ImageRequest;
 import pack.smartwaste.RequestsEntities.ImageResponse;
 import pack.smartwaste.models.post.Annonce;
 import pack.smartwaste.models.user.City;
+import pack.smartwaste.models.user.User;
 import pack.smartwaste.rep.AnnonceRepository;
+import pack.smartwaste.rep.UserRepository;
 
 import java.io.IOException;
 import java.util.*;
@@ -23,6 +25,47 @@ public class AnnonceService {
     private final ImageStorageServiceCloud imageStorageServiceCloud;
     private final CityService cityService;
     private final FastApiService fastApiService;
+
+    private final UserRepository userRepo;
+
+    // save annonce
+    public boolean saveAnnonce(Long userId, Long annonceId) {
+        Optional<User> userOpt = userRepo.findById(userId);
+        Optional<Annonce> annonceOpt = annonceRepository.findById(annonceId);
+
+        if (userOpt.isPresent() && annonceOpt.isPresent()) {
+            User user = userOpt.get();
+            Annonce annonce = annonceOpt.get();
+            user.getSavedAnnonces().add(annonce);
+            userRepo.save(user);
+            return true;
+        }
+        return false;
+    }
+
+    // unsave
+    public boolean unsaveAnnonce(Long userId, Long annonceId) {
+        Optional<User> userOpt = userRepo.findById(userId);
+        Optional<Annonce> annonceOpt = annonceRepository.findById(annonceId);
+
+        if (userOpt.isPresent() && annonceOpt.isPresent()) {
+            User user = userOpt.get();
+            Annonce annonce = annonceOpt.get();
+
+            user.getSavedAnnonces().remove(annonce);
+            userRepo.save(user);
+            return true;
+        }
+        return false;
+    }
+
+    // get saved post
+    public Set<Annonce> getSavedAnnonces(Long userId) {
+        return userRepo.findById(userId)
+                .map(User::getSavedAnnonces)
+                .orElse(Collections.emptySet());
+    }
+
 
     // Create
     @Transactional
