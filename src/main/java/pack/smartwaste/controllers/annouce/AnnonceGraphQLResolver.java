@@ -1,22 +1,16 @@
 package pack.smartwaste.controllers.annouce;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.graphql.data.method.annotation.Argument;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
-import pack.smartwaste.RequestsEntities.ImageRequest;
-import pack.smartwaste.RequestsEntities.ImageResponse;
+import pack.smartwaste.RequestsEntities.FastApiResponse;
 import pack.smartwaste.config.JwtUtils;
-import pack.smartwaste.controllers.FastAPIController;
 import pack.smartwaste.models.post.Annonce;
 import pack.smartwaste.models.post.AnnonceResponse;
-import pack.smartwaste.rep.AnnonceRepository;
+import pack.smartwaste.models.user.User;
 import pack.smartwaste.services.AnnonceService;
 import pack.smartwaste.services.CustomUserService;
 import pack.smartwaste.services.FastApiService;
@@ -133,6 +127,47 @@ public class AnnonceGraphQLResolver {
             return null;
         }
     }
+    @QueryMapping
+    public List<AnnonceResponse> getAllAnnoncesMine(
+            @Argument String token
+    ) {
+        try {
+            String username = jwtUtil.extractUsername(token.replace("Bearer ", ""));
+            User user = userService.loadUserByUsername(username);
+            List<Annonce> annonces = annonceService.getAnnoncesByUser(user);
+
+            Long userId = user.getId();
+            Set<Long> savedAnnonceIds = annonceService.getSavedAnnonces(userId).stream()
+                    .map(Annonce::getId)
+                    .collect(Collectors.toSet());
+            List<AnnonceResponse> responseList;
+
+            responseList = annonces.stream().map(annonce -> {
+                AnnonceResponse response = new AnnonceResponse();
+                response.setId(annonce.getId());
+                response.setTitle(annonce.getTitle());
+                response.setDescription(annonce.getDescription());
+                response.setDatePublished(annonce.getDatePublished());
+                response.setStatus(annonce.getStatus().name());
+                response.setImageUrls(annonce.getImageUrls());
+                response.setLocation(annonce.getLocation());
+                response.setCity(annonce.getCity());
+                response.setUser(annonce.getUser());
+                response.setSaved(savedAnnonceIds.contains(annonce.getId()));
+                return response;
+            }).toList();
+
+
+
+
+            return responseList;
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return null;
+        }
+    }
+
+
 
     @QueryMapping
     public List<AnnonceResponse> searchAnnoncesByImage(@Argument String image,
@@ -141,16 +176,16 @@ public class AnnonceGraphQLResolver {
             logger.warn("Fetching similar images for URL: {}", image);
 
             // Send image to FastAPI to get similar image URLs
-            ImageResponse imageResponse = fastApiService.getSimilarImages(image);
-            if (imageResponse == null || imageResponse.getUrls() == null) {
+            FastApiResponse fastApiResponse = fastApiService.getSimilarImages(image);
+            if (fastApiResponse == null || fastApiResponse.getUrls() == null) {
                 logger.warn("No valid image URLs received from FastAPI");
                 return Collections.emptyList();
             }
 
-            logger.warn("Received image URLs: {}", imageResponse.getUrls());
+            logger.warn("Received image URLs: {}", fastApiResponse.getUrls());
 
             // Find annonces based on those image URLs in order
-            List<Annonce> annonceList = annonceService.findAnnoncesByImageUrlsOrdered(imageResponse.getUrls());
+            List<Annonce> annonceList = annonceService.findAnnoncesByImageUrlsOrdered(fastApiResponse.getUrls());
             String username = jwtUtil.extractUsername(token.replace("Bearer ", ""));
             Long userId = userService.loadUserByUsername(username).getId();
             Set<Long> savedAnnonceIds = annonceService.getSavedAnnonces(userId).stream()
@@ -178,7 +213,50 @@ public class AnnonceGraphQLResolver {
             return Collections.emptyList();
         }
     }
+    @QueryMapping
+    public List<AnnonceResponse> searchAnnoncesByText(@Argument String text,
+                                                       @Argument String token) {
+        try {
+            logger.warn("Fetching similar annonce for URL: {}", text);
 
+            // Send image to FastAPI to get similar image URLs
+            FastApiResponse fastApiResponse = fastApiService.getSimilarImagesByText(text);
+            if (fastApiResponse == null || fastApiResponse.getUrls() == null) {
+                logger.warn("No valid image URLs received from FastAPI");
+                return Collections.emptyList();
+            }
+
+            logger.warn("Received image URLs: {}", fastApiResponse.getUrls());
+
+            // Find annonces based on those image URLs in order
+            List<Annonce> annonceList = annonceService.findAnnoncesByImageUrlsOrdered(fastApiResponse.getUrls());
+            String username = jwtUtil.extractUsername(token.replace("Bearer ", ""));
+            Long userId = userService.loadUserByUsername(username).getId();
+            Set<Long> savedAnnonceIds = annonceService.getSavedAnnonces(userId).stream()
+                    .map(Annonce::getId)
+                    .collect(Collectors.toSet());
+            List<AnnonceResponse> responseList = annonceList.stream().map(annonce -> {
+                        AnnonceResponse response = new AnnonceResponse();
+                        response.setId(annonce.getId());
+                        response.setTitle(annonce.getTitle());
+                        response.setDescription(annonce.getDescription());
+                        response.setDatePublished(annonce.getDatePublished());
+                        response.setStatus(annonce.getStatus().name());
+                        response.setImageUrls(annonce.getImageUrls());
+                        response.setLocation(annonce.getLocation());
+                        response.setCity(annonce.getCity());
+                        response.setUser(annonce.getUser());
+                        response.setSaved(savedAnnonceIds.contains(annonce.getId()));
+                        return response;
+                    })
+                    .toList();
+            return responseList;
+
+        } catch (Exception e) {
+            logger.error("Error in searchAnnoncesByImage: {}", e.getMessage(), e);
+            return Collections.emptyList();
+        }
+    }
     private final JwtUtils jwtUtil;
 
 

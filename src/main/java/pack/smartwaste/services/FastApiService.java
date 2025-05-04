@@ -4,18 +4,21 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import pack.smartwaste.RequestsEntities.ImageRequest;
-import pack.smartwaste.RequestsEntities.ImageResponse;
+import pack.smartwaste.RequestsEntities.FastApiResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pack.smartwaste.RequestsEntities.TextRequest;
 
 @Service
 public class FastApiService {
 
     private static final Logger logger = LoggerFactory.getLogger(FastApiService.class);
 
-    private final String FAST_API_URL = "http://localhost:8000/similar/";
+    private final String FAST_API_URL = "http://localhost:8000/";
+    private final String IMAGE = "similar-image/";
+    private final String TEXT = "similar-text/";
 
-    public ImageResponse getSimilarImages(String imageUrl) {
+    public FastApiResponse getSimilarImages(String imageUrl) {
         RestTemplate restTemplate = new RestTemplate();
 
         ImageRequest request = new ImageRequest(imageUrl);
@@ -27,10 +30,30 @@ public class FastApiService {
 
         logger.info("Sending request to FastAPI: {}", request);
 
-        ResponseEntity<ImageResponse> response = restTemplate.postForEntity(
-                FAST_API_URL,
+        ResponseEntity<FastApiResponse> response = restTemplate.postForEntity(
+                FAST_API_URL + IMAGE,
                 entity,
-                ImageResponse.class
+                FastApiResponse.class
+        );
+
+        return response.getBody();
+    }
+    public FastApiResponse getSimilarImagesByText(String text) {
+        RestTemplate restTemplate = new RestTemplate();
+
+        TextRequest request = new TextRequest(text);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<TextRequest> entity = new HttpEntity<>(request, headers);
+
+        logger.info("Sending request to FastAPI: {}", request);
+
+        ResponseEntity<FastApiResponse> response = restTemplate.postForEntity(
+                FAST_API_URL + TEXT,
+                entity,
+                FastApiResponse.class
         );
 
         return response.getBody();

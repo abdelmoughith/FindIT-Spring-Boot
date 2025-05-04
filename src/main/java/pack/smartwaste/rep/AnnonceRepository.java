@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import pack.smartwaste.models.post.Annonce;
 import pack.smartwaste.models.user.City;
+import pack.smartwaste.models.user.User;
 
 import java.util.List;
 
@@ -26,5 +27,8 @@ public interface AnnonceRepository extends JpaRepository<Annonce, Long> {
     // find by images url for search by image
     @Query("SELECT DISTINCT a FROM Annonce a JOIN a.imageUrls i WHERE i IN :imageUrls")
     List<Annonce> findByImageUrls(@Param("imageUrls") List<String> imageUrls);
+
+    List<Annonce> findAllByUserOrderByDatePublishedDesc(User user);
+
 
 }

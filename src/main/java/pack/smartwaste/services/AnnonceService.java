@@ -7,8 +7,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import pack.smartwaste.RequestsEntities.ImageRequest;
-import pack.smartwaste.RequestsEntities.ImageResponse;
 import pack.smartwaste.models.post.Annonce;
 import pack.smartwaste.models.user.City;
 import pack.smartwaste.models.user.User;
@@ -214,6 +212,9 @@ public class AnnonceService {
         }));
 
         return rawAnnonces;
+    }
+    public List<Annonce> getAnnoncesByUser(User user) {
+        return annonceRepository.findAllByUserOrderByDatePublishedDesc(user);
     }
 
 

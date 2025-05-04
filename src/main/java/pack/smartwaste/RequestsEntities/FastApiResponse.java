@@ -2,7 +2,7 @@ package pack.smartwaste.RequestsEntities;
 
 import java.util.List;
 
-public class ImageResponse {
+public class FastApiResponse {
     private List<String> urls;
 
     // Getter and Setter

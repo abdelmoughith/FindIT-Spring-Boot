@@ -9,13 +9,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import pack.smartwaste.RequestsEntities.ImageRequest;
-import pack.smartwaste.RequestsEntities.ImageResponse;
+import pack.smartwaste.RequestsEntities.FastApiResponse;
 import pack.smartwaste.models.post.Annonce;
 import pack.smartwaste.services.AnnonceService;
 import pack.smartwaste.services.FastApiService;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/ai")
@@ -32,7 +31,7 @@ public class FastAPIController {
     private AnnonceService annonceService;
 
     @PostMapping("/search")
-    public ImageResponse findSimilar(@Valid @RequestBody ImageRequest request) {
+    public FastApiResponse findSimilar(@Valid @RequestBody ImageRequest request) {
         return fastApiService.getSimilarImages(request.getImage());
     }
 
@@ -42,16 +41,16 @@ public class FastAPIController {
             logger.warn("Fetching similar images for URL: {}", request.getImage());
 
             // Fetch similar images from FastAPI
-            ImageResponse imageResponse = fastApiService.getSimilarImages(request.getImage());
-            if (imageResponse == null || imageResponse.getUrls() == null) {
+            FastApiResponse fastApiResponse = fastApiService.getSimilarImages(request.getImage());
+            if (fastApiResponse == null || fastApiResponse.getUrls() == null) {
                 logger.warn("No valid image URLs received from FastAPI");
                 return ResponseEntity.badRequest().body("Failed to fetch similar images");
             }
 
-            logger.warn("Received image URLs: {}", imageResponse.getUrls());
+            logger.warn("Received image URLs: {}", fastApiResponse.getUrls());
 
             // Find annonces by image URLs
-            List<Annonce> annonces = annonceService.findAnnoncesByImageUrlsOrdered(imageResponse.getUrls());
+            List<Annonce> annonces = annonceService.findAnnoncesByImageUrlsOrdered(fastApiResponse.getUrls());
             logger.warn("Found {} annonces matching the image URLs", annonces.size());
 
             return ResponseEntity.ok(annonces);
