@@ -4,6 +4,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import pack.smartwaste.models.post.Annonce;
@@ -11,6 +12,7 @@ import pack.smartwaste.rep.AnnonceRepository;
 
 import java.io.IOException;
 
+@Slf4j
 @Component
 public class PostAuthorizationFilter extends OncePerRequestFilter {
 
@@ -38,8 +40,11 @@ public class PostAuthorizationFilter extends OncePerRequestFilter {
         }
 
         String token = authHeader.substring(7);
+        log.debug("Extracted token: {}", token);
         String username = jwtUtils.extractUsername(token);
         Long userId = jwtUtils.extractUserId(token);
+
+
 
         if (request.getMethod().equals("PUT") || request.getMethod().equals("DELETE")) {
             Long postId = extractPostIdFromRequest(request);

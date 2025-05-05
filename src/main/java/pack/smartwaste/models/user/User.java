@@ -30,6 +30,9 @@ public class User implements UserDetails {
     @Email(message = "Invalid email format")
     @Column(nullable = false, unique = true)
     private String email;
+
+    @Column
+    private String profileImage;
     // TODO
     @Column(nullable = false)
     private LocalDate birthday;

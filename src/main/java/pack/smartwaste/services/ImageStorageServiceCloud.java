@@ -196,4 +196,49 @@ public class ImageStorageServiceCloud {
         int lastIndex = fileName.lastIndexOf('.');
         return (lastIndex == -1) ? "" : fileName.substring(lastIndex + 1);
     }
+
+    public String saveProfileImage(MultipartFile file) throws IOException {
+        // Validate file type
+        String contentType = file.getContentType();
+        if (contentType == null ||
+                (!contentType.equals("image/jpeg") && !contentType.equals("image/png"))) {
+            throw new IllegalArgumentException("Only .jpg and .png files are allowed.");
+        }
+
+        // Determine file extension
+        String fileExtension = getFileExtension(file.getOriginalFilename());
+        String baseFileName = UUID.randomUUID().toString();
+        String originalFileName = baseFileName + "." + fileExtension;
+
+        // Read original image
+        BufferedImage originalImage = ImageIO.read(file.getInputStream());
+        if (originalImage == null) {
+            throw new IllegalArgumentException("Invalid image file.");
+        }
+
+        // Process main image: resize to a maximum of 1080x1080 if necessary
+        ByteArrayOutputStream mainBaos = new ByteArrayOutputStream();
+        if (originalImage.getWidth() > 1080 || originalImage.getHeight() > 1080) {
+            Thumbnails.of(originalImage)
+                    .size(1080, 1080)
+                    .outputFormat(fileExtension)
+                    .toOutputStream(mainBaos);
+        } else {
+            ImageIO.write(originalImage, fileExtension, mainBaos);
+        }
+        byte[] mainImageData = mainBaos.toByteArray();
+
+        // Process preview image: resize to 150x150
+        ByteArrayOutputStream previewBaos = new ByteArrayOutputStream();
+        Thumbnails.of(originalImage)
+                .size(150, 150)
+                .outputFormat(fileExtension)
+                .toOutputStream(previewBaos);
+        byte[] previewImageData = previewBaos.toByteArray();
+
+        // Upload images to Firebase
+        String mainImageUrl = uploadToFirebase(mainImageData, "profile_pictures/" + originalFileName, fileExtension);
+
+        return mainImageUrl;
+    }
 }

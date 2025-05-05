@@ -1,5 +1,6 @@
 package pack.smartwaste.services;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,16 +9,19 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import pack.smartwaste.config.JwtUtils;
+import pack.smartwaste.models.post.Annonce;
+import pack.smartwaste.models.user.City;
 import pack.smartwaste.models.user.Role;
 import pack.smartwaste.models.user.User;
+import pack.smartwaste.models.user.UserResponseDTO;
 import pack.smartwaste.rep.RoleRepository;
 import pack.smartwaste.rep.UserRepository;
 
+import java.io.IOException;
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 
 @Service
@@ -26,6 +30,7 @@ public class CustomUserService implements UserDetailsService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final ImageStorageServiceCloud imageStorageServiceCloud;
 
 
     @Transactional
@@ -78,6 +83,21 @@ public class CustomUserService implements UserDetailsService {
 
     public Optional<User> findUserById(Long id) throws UsernameNotFoundException {
         return userRepository.findById(id);
+    }
+
+    @Transactional
+    // update image pic
+    public String updateProfilePicture(
+            User user,
+            MultipartFile image
+    ) throws IOException {
+        if (image != null && !image.isEmpty()) {
+            String response = imageStorageServiceCloud.saveProfileImage(image);
+            user.setProfileImage(response);
+            userRepository.save(user);
+            return response;
+        }
+        throw new IOException("Image is null or empty");
     }
 
 }

@@ -50,8 +50,6 @@ public class UserInfoController {
         if (!user.getUsername().equals(usernameFromToken)) {
             return new ResponseEntity<>("Unauthorized access: You can only retrieve your own details", HttpStatus.UNAUTHORIZED);
         }
-
-
         UserResponseDTO responseDTO = new UserResponseDTO(user);
         return new ResponseEntity<>(responseDTO, HttpStatus.OK);
     }

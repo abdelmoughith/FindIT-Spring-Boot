@@ -1,5 +1,6 @@
 package pack.smartwaste.controllers;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -8,14 +9,18 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import pack.smartwaste.config.JwtUtils;
 import pack.smartwaste.models.user.AuthResponseDto;
 import pack.smartwaste.models.user.LoginDto;
 import pack.smartwaste.models.user.User;
 import pack.smartwaste.services.CustomUserService;
 
+import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/auth")
 public class UserController {
@@ -84,4 +89,22 @@ public class UserController {
     public String home() {
         return "Welcome to FINDIT";
     }
+
+    @PutMapping("/update-picture")
+    public ResponseEntity<Boolean> updateProfilePicture(
+            @RequestParam(value = "image") MultipartFile image,
+            @RequestHeader("Authorization") String authorizationHeader
+    ) throws IOException {
+        log.debug("token is : {}", authorizationHeader);
+        String token = authorizationHeader.replace("Bearer ", "");
+        String username = jwtUtils.extractUsername(token);
+        User user = customUserService.loadUserByUsername(username);
+        try {
+            String response = customUserService.updateProfilePicture(user, image);
+            return new ResponseEntity<>(true, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 }
