@@ -39,6 +39,7 @@ type User {
     email: String!
     birthday: String!
     city: City!
+    profileImage: String!
 }
 
 type City {
