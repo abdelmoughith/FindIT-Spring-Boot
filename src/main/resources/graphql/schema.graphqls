@@ -3,7 +3,7 @@ type Query {
     getAllAnnonces(token: String, city: String, pattern :String, page: Int, onlySaved: Boolean): [AnnonceResponse]
     getAllAnnoncesMine(token: String): [AnnonceResponse]
     searchAnnonces(pattern: String, page: Int): [Annonce]
-    getAnnonceById(id: ID!): Annonce
+    getAnnonceById(id: ID!): AnnonceResponse
     # AI
     searchAnnoncesByImage(image: String!, token: String!): [AnnonceResponse]
     searchAnnoncesByText(text: String!, token: String!): [AnnonceResponse]

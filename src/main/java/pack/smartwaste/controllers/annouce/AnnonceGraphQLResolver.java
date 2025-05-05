@@ -64,9 +64,21 @@ public class AnnonceGraphQLResolver {
      */
 
     @QueryMapping
-    public Annonce getAnnonceById(@Argument Long id) {
-        return annonceService.getAnnonceById(id)
+    public AnnonceResponse getAnnonceById(@Argument Long id) {
+        Annonce annonce = annonceService.getAnnonceById(id)
                 .orElseThrow(() -> new RuntimeException("Annonce not found with id " + id));
+        AnnonceResponse response = new AnnonceResponse();
+        response.setId(annonce.getId());
+        response.setTitle(annonce.getTitle());
+        response.setDescription(annonce.getDescription());
+        response.setDatePublished(annonce.getDatePublished());
+        response.setStatus(annonce.getStatus().name());
+        response.setImageUrls(annonce.getImageUrls());
+        response.setLocation(annonce.getLocation());
+        response.setCity(annonce.getCity());
+        response.setUser(annonce.getUser());
+        response.setSaved(true);
+        return response;
     }
 
     @QueryMapping
