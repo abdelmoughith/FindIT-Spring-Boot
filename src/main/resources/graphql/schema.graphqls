@@ -36,10 +36,13 @@ type Annonce {
 type User {
     id: ID!
     username: String!
+    firstName: String!
+    lastName: String!
     email: String!
+    phone: String!
     birthday: String!
     city: City!
-    profileImage: String!
+    profileImage: String
 }
 
 type City {

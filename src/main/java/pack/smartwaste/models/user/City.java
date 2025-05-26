@@ -12,5 +12,4 @@ public class City {
     private String ville;
     @Column(nullable = false)
     private Long region;
-
 }

@@ -19,7 +19,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 @RequiredArgsConstructor
 @Controller
 public class AnnonceGraphQLResolver {
@@ -28,6 +27,7 @@ public class AnnonceGraphQLResolver {
     private final CustomUserService userService;
     private static final int PAGE_SIZE = 25;
     private static final Logger logger = LoggerFactory.getLogger(AnnonceGraphQLResolver.class);
+    private final JwtUtils jwtUtil;
 
 
 
@@ -269,7 +269,7 @@ public class AnnonceGraphQLResolver {
             return Collections.emptyList();
         }
     }
-    private final JwtUtils jwtUtil;
+
 
 
 

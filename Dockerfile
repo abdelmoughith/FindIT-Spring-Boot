@@ -1,29 +1,17 @@
-# ========== Build Stage ==========
-FROM maven:3.9.6-eclipse-temurin-21-alpine AS build
+# Use a builder image to compile the app
+FROM maven:3.9.6-eclipse-temurin-21 AS build
 WORKDIR /app
+COPY . .
+RUN mvn clean package -DskipTests
 
-# Copy pom and download dependencies first for caching
-COPY pom.xml ./
-COPY .mvn .mvn
-COPY mvnw ./
-RUN ./mvnw dependency:go-offline
-
-# Copy source and build the app
-COPY src ./src
-RUN ./mvnw clean package -DskipTests
-
-# ========== Runtime Stage ==========
-FROM eclipse-temurin:21-jdk-alpine
+# Use a lighter JDK runtime image for running the app
+FROM eclipse-temurin:21-jdk
+VOLUME /tmp
 WORKDIR /app
+COPY --from=build /app/target/*.jar app.jar
 
-# Copy the built JAR from build stage
-COPY --from=build /app/target/findit-spring-boot-0.0.1-SNAPSHOT.jar app.jar
-
-# Copy Firebase token file
-COPY src/main/resources/indus-532b7-firebase-adminsdk-uhb0r-e05db78a77.json /app/
-
-# Expose the port
+# Expose the port your app runs on
 EXPOSE 8080
 
-# Run the application
-CMD ["java", "-jar", "app.jar"]
+# Run the app
+ENTRYPOINT ["java","-jar","app.jar"]

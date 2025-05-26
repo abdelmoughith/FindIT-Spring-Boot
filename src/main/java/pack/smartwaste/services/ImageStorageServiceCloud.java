@@ -157,8 +157,8 @@ public class ImageStorageServiceCloud {
         }
 
         // Check if image exceeds size limits (height or width greater than 1080px)
-        if (originalImage.getWidth() > 3000 || originalImage.getHeight() > 3000) {
-            throw new IllegalArgumentException("Image height or width exceeds the 1080px limit.");
+        if (originalImage.getWidth() > 5000 || originalImage.getHeight() > 5000) {
+            throw new IllegalArgumentException("Image height or width exceeds the 5000px limit.");
         }
 
         // Convert image to byte array
@@ -228,7 +228,8 @@ public class ImageStorageServiceCloud {
         }
         byte[] mainImageData = mainBaos.toByteArray();
 
-        // Process preview image: resize to 150x150
+        // Process preview image:
+        // to 150x150
         ByteArrayOutputStream previewBaos = new ByteArrayOutputStream();
         Thumbnails.of(originalImage)
                 .size(150, 150)

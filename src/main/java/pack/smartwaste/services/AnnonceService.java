@@ -2,6 +2,7 @@ package pack.smartwaste.services;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -216,7 +217,6 @@ public class AnnonceService {
     public List<Annonce> getAnnoncesByUser(User user) {
         return annonceRepository.findAllByUserOrderByDatePublishedDesc(user);
     }
-
 
 
 }
