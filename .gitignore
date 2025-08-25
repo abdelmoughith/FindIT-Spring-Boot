@@ -31,3 +31,8 @@ build/
 
 ### VS Code ###
 .vscode/
+
+###json to firebase key ###
+# Ignore Firebase admin JSON key
+src/main/resources/indus-532b7-firebase-adminsdk-uhb0r-fbdc65e5fc.json
+
