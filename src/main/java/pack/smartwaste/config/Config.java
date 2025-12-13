@@ -48,7 +48,7 @@ public class Config {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(Arrays.asList(UrlUtils.REACT_URL, UrlUtils.REACT_URL)); // Use arrays for better compatibility
+        config.setAllowedOrigins(Arrays.asList(UrlUtils.REACT_URL, UrlUtils.REACT_URL_LOCALHOST)); // Use arrays for better compatibility
         config.setAllowedMethods(Arrays.asList(
                 "GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"
         ));

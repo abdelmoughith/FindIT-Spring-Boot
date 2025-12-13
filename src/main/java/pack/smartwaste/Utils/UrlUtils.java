@@ -4,7 +4,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 public class UrlUtils {
-    //public static final String REACT_URL = "http://10.41.119.8:5173";
+    //public static final String REACT_URL = "http://10.100.94.8:5173";
+    public static final String REACT_URL_LOCALHOST = "http://localhost:5173";
     public static final String REACT_URL = "http://192.168.1.9:5173";
 
     public static String extractUniqueId(String url) {
