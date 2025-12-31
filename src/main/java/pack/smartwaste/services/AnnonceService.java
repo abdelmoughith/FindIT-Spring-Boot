@@ -158,13 +158,22 @@ public class AnnonceService {
     public List<Annonce> getAllAnnoncesByCityAndPattern(String city, String pattern, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         if (city == null && pattern == null){
-            return annonceRepository.findAllByOrderByDatePublishedDesc(pageable).getContent();
+            return annonceRepository.findAllByOrderByDatePublishedDesc(pageable).getContent()
+                    .stream()
+                    .map(this::fixAnnonceUrl)
+                    .toList();
         }
         if (city == null) { // look for pattern only
-            return searchAnnoncesByPattern(pattern, page, size);
+            return searchAnnoncesByPattern(pattern, page, size)
+                    .stream()
+                    .map(this::fixAnnonceUrl)
+                    .toList();
         }
         if (pattern == null) { // look for pattern only
-            return getAllAnnoncesDescOrByCity(city, page, size);
+            return getAllAnnoncesDescOrByCity(city, page, size)
+                    .stream()
+                    .map(this::fixAnnonceUrl)
+                    .toList();
         }
         // city != null && pattern != null
 
