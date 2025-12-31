@@ -16,6 +16,9 @@ import pack.smartwaste.rep.UserRepository;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
+
+import static pack.smartwaste.Utils.UrlUtils.BASE_URL;
 
 @RequiredArgsConstructor
 @Service
@@ -26,6 +29,31 @@ public class AnnonceService {
     private final FastApiService fastApiService;
 
     private final UserRepository userRepo;
+
+    private Annonce fixAnnonceUrl(Annonce annonce) {
+        if (annonce == null) {
+            return null;
+        }
+
+        if (annonce.getImageUrls() != null && !annonce.getImageUrls().isEmpty()) {
+            String img = annonce.getImageUrls().get(0);
+            if (img != null && !img.startsWith(BASE_URL)) {
+                annonce.getImageUrls().set(0, BASE_URL + img);
+            }
+        }
+
+        if (annonce.getUser() != null) {
+            User user = annonce.getUser();
+            String profile = user.getProfileImage();
+            if (profile != null && !profile.startsWith(BASE_URL)) {
+                user.setProfileImage(BASE_URL + profile);
+            }
+        }
+
+        return annonce;
+    }
+
+
 
     // save annonce
     public boolean saveAnnonce(Long userId, Long annonceId) {
@@ -62,7 +90,9 @@ public class AnnonceService {
     public Set<Annonce> getSavedAnnonces(Long userId) {
         return userRepo.findById(userId)
                 .map(User::getSavedAnnonces)
-                .orElse(Collections.emptySet());
+                .orElse(Collections.emptySet())
+                .stream().map(this::fixAnnonceUrl)
+                .collect(Collectors.toSet());
     }
 
 
@@ -95,7 +125,8 @@ public class AnnonceService {
     }
     // Read (Get by ID)
     public Optional<Annonce> getAnnonceById(Long id) {
-        return annonceRepository.findById(id);
+        return annonceRepository.findById(id)
+                .map(this::fixAnnonceUrl);
     }
 
     public List<Annonce> searchAnnoncesByPattern(String pattern, int page, int size) {
@@ -103,7 +134,10 @@ public class AnnonceService {
         if (pattern == null || pattern.isEmpty()) {
             throw new EntityNotFoundException("No pattern entered");
         }
-        return annonceRepository.findByTitleContainingOrDescriptionContainingOrLocationContaining(pattern, pattern, pattern, pageable).getContent();
+        return annonceRepository.findByTitleContainingOrDescriptionContainingOrLocationContaining(pattern, pattern, pattern, pageable).getContent()
+                .stream()
+                .map(this::fixAnnonceUrl)
+                .toList();
 
     }
     // Read (Get all)
@@ -115,7 +149,10 @@ public class AnnonceService {
         City relatedCity = cityService.getCityByName(city).orElseThrow(
                 () -> new EntityNotFoundException("City not found")
         );
-        return annonceRepository.findAllByCityOrderByDatePublishedDesc(relatedCity, pageable).getContent();
+        return annonceRepository.findAllByCityOrderByDatePublishedDesc(relatedCity, pageable).getContent()
+                .stream()
+                .map(this::fixAnnonceUrl)
+                .toList();
     }
 
     public List<Annonce> getAllAnnoncesByCityAndPattern(String city, String pattern, int page, int size) {
@@ -145,7 +182,10 @@ public class AnnonceService {
                 relatedCity,
                 pattern,
                 pageable
-        ).getContent();
+        ).getContent()
+                .stream()
+                .map(this::fixAnnonceUrl)
+                .toList();
     }
 
 
@@ -188,11 +228,17 @@ public class AnnonceService {
         annonceRepository.deleteById(id);
     }
     public List<Annonce> getAll() {
-        return annonceRepository.findAll();
+        return annonceRepository.findAll()
+                .stream()
+                .map(this::fixAnnonceUrl)
+                .toList();
     }
 
     public List<Annonce> findAnnoncesByImageUrls(List<String> imageUrls) {
-        return annonceRepository.findByImageUrls(imageUrls);
+        return annonceRepository.findByImageUrls(imageUrls)
+                .stream()
+                .map(this::fixAnnonceUrl)
+                .toList();
     }
     public List<Annonce> findAnnoncesByImageUrlsOrdered(List<String> orderedUrls) {
         List<Annonce> rawAnnonces = annonceRepository.findByImageUrls(orderedUrls);
@@ -212,10 +258,14 @@ public class AnnonceService {
             return minIndex.orElse(Integer.MAX_VALUE);
         }));
 
-        return rawAnnonces;
+        return rawAnnonces.stream()
+                .map(this::fixAnnonceUrl)
+                .toList();
     }
     public List<Annonce> getAnnoncesByUser(User user) {
-        return annonceRepository.findAllByUserOrderByDatePublishedDesc(user);
+        return annonceRepository.findAllByUserOrderByDatePublishedDesc(user).stream()
+                .map(this::fixAnnonceUrl)
+                .toList();
     }
 
 
