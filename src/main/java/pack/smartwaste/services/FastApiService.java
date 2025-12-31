@@ -17,8 +17,8 @@ public class FastApiService {
     private static final Logger logger = LoggerFactory.getLogger(FastApiService.class);
 
     //private final String FAST_API_URL = "http://fastapi-service:8000/";
-    private final String IMAGE = "similar-image/";
-    private final String TEXT = "similar-text/";
+    private final String IMAGE = "/similar-image/";
+    private final String TEXT = "/similar-text/";
 
     public FastApiResponse getSimilarImages(String imageUrl) {
         RestTemplate restTemplate = new RestTemplate();
@@ -38,7 +38,11 @@ public class FastApiService {
                 FastApiResponse.class
         );
 
-        return response.getBody();
+        FastApiResponse body = response.getBody();
+        if (body != null) {
+            body.removeIP(); // Now actually removes BASE_URL
+        }
+        return body;
     }
     public FastApiResponse getSimilarImagesByText(String text) {
         RestTemplate restTemplate = new RestTemplate();
