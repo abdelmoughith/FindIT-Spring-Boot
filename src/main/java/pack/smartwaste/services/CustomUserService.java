@@ -30,7 +30,7 @@ public class CustomUserService implements UserDetailsService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
-    private final ImageStorageServiceCloud imageStorageServiceCloud;
+    private final VarStorageService imageStorageServiceCloud;
 
 
     @Transactional

@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import pack.smartwaste.services.ImageStorageServiceCloud;
+import pack.smartwaste.services.VarStorageService;
 
 import java.io.IOException;
 
@@ -14,7 +15,7 @@ import java.io.IOException;
 @RequestMapping("/helper")
 public class HelperController {
 
-    private final ImageStorageServiceCloud imageStorageServiceCloud;
+    private final VarStorageService imageStorageServiceCloud;
 
     @PostMapping("/post-raw-image")
     public String findAnnoncesByImageUrlsOrderedAfterPosting(

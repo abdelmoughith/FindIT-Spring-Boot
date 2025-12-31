@@ -8,15 +8,16 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import pack.smartwaste.services.ImageStorageServiceCloud;
+import pack.smartwaste.services.VarStorageService;
 
 import java.io.IOException;
 
 @RestController
 @RequestMapping("/test")
 public class TestController {
-    private final ImageStorageServiceCloud imageStorageService;
+    private final VarStorageService imageStorageService;
 
-    public TestController(ImageStorageServiceCloud imageStorageService) {
+    public TestController(VarStorageService imageStorageService) {
         this.imageStorageService = imageStorageService;
     }
 
@@ -24,7 +25,7 @@ public class TestController {
     public ResponseEntity<String> uploadImage(@RequestParam("file") MultipartFile file) {
         try {
             // Save the image and get the URL path
-            String imageUrl = imageStorageService.saveImage(file);
+            String imageUrl = imageStorageService.uploadRawImageToTMPfolder(file);
             return ResponseEntity.status(HttpStatus.CREATED).body("File uploaded successfully: " + imageUrl);
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

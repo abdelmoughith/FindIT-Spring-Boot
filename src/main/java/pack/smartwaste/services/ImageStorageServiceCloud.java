@@ -23,10 +23,11 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
-@Service
+//@Service
 public class ImageStorageServiceCloud {
 
 
+    /*
     @Value("${firebase.token}")
     private String firebaseTokenPath;
 
@@ -45,16 +46,6 @@ public class ImageStorageServiceCloud {
         }
     }
 
-    /**
-     * Uploads an image to Firebase Storage.
-     * Creates two versions:
-     *  - The main image (resized to a maximum of 1080×1080 if necessary)
-     *  - A preview image (resized to 150×150)
-     *
-     * @param file the uploaded file from the client
-     * @return an array of two URLs: [0]=main image URL, [1]=preview image URL; returns null for a version if upload fails.
-     * @throws IOException if reading the file fails
-     */
     public String saveImage(MultipartFile file) throws IOException {
         // Validate file type
         String contentType = file.getContentType();
@@ -102,14 +93,7 @@ public class ImageStorageServiceCloud {
         return mainImageUrl;
     }
 
-    /**
-     * Uploads image data to Firebase Storage.
-     *
-     * @param imageData   the image data as a byte array
-     * @param path        the path in the Firebase bucket
-     * @param fileExtension the file extension to set the MIME type (e.g., "jpg", "png")
-     * @return the public URL of the uploaded image or null if upload fails
-     */
+
     private String uploadToFirebase(byte[] imageData, String path, String fileExtension) {
         try {
             // Generate a unique download token
@@ -242,4 +226,6 @@ public class ImageStorageServiceCloud {
 
         return mainImageUrl;
     }
+
+     */
 }

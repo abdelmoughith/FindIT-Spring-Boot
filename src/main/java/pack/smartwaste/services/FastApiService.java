@@ -9,12 +9,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pack.smartwaste.RequestsEntities.TextRequest;
 
+import static pack.smartwaste.Utils.UrlUtils.FAST_API_URL;
+
 @Service
 public class FastApiService {
 
     private static final Logger logger = LoggerFactory.getLogger(FastApiService.class);
 
-     private final String FAST_API_URL = "http://localhost:8000/";
     //private final String FAST_API_URL = "http://fastapi-service:8000/";
     private final String IMAGE = "similar-image/";
     private final String TEXT = "similar-text/";
